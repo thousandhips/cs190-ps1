@@ -9,8 +9,10 @@ import UIKit
 
 // Each digit has 8 segments, lettered a-h.
 let segments = 8
-
 // We'll still call it a seven-segment component (SSC), even though the decimal point gives it an eight part.
+
+// This is a 15-digit display.
+let digits = 15
 
 // Coordinates within a 11x20 grid.
 
@@ -98,15 +100,13 @@ func rectToInsetRect(rect: CGRect) -> CGRect {
 class Display: UIView {
     
     // Draws a segment given its four corners, supplied in clockwise order.
-    // I put one bug in this code. Find it and fix it. Once it's fixed, you'll
-    // see a nicely drawn 8.
     func drawSegment(context: CGContextRef, upperLeft: CGPoint, upperRight: CGPoint, lowerRight: CGPoint, lowerLeft: CGPoint, on:Bool) {
         let color = on ? ledOnColor : ledOffColor
         CGContextSetFillColorWithColor(context, color)
         CGContextMoveToPoint(context, upperLeft.x, upperLeft.y)
         CGContextAddLineToPoint(context, upperRight.x, upperRight.y)
         CGContextAddLineToPoint(context, lowerRight.x, lowerRight.y)
-        CGContextAddLineToPoint(context, lowerRight.x, lowerLeft.y)
+        CGContextAddLineToPoint(context, lowerLeft.x, lowerLeft.y)
         CGContextAddLineToPoint(context, upperLeft.x, upperLeft.y)
         CGContextFillPath(context)
     }
@@ -144,22 +144,24 @@ class Display: UIView {
         segmentMasks[9],  // 9
     ]
     
-    // This is a 15-digit display.
-    let digits = 15
 
-    // When you are done with this function, it should draw all 15 SSC's and it should use the masks array above to
-    // make the 15 SSCs show -1.23456790 99.
-    // Except for the bug fix in drawSegment, there is no need to modify any code outside of this function.
+    // Draws all 15 SSC's and uses the masks array above to make the 15 SSCs show -1.23456790 99.
     override func drawRect(rect: CGRect) {
         let context = UIGraphicsGetCurrentContext()!
         let bounds = self.bounds
         let segmentHeight = bounds.size.height
-        let xOrigin = bounds.origin.x
         let yOrigin = bounds.origin.y
-        // This needs re-doing. The segmentWidth is the whole view width. It should only be one-fifteenth of that.
-        let sscRect = CGRectMake(xOrigin, yOrigin, bounds.size.width, segmentHeight)
-        // This needs completing. It only draws one SSC. It needs to be put in a loop to show all 15 SSCs.
-        drawSSC(context, sscRect:sscRect, mask:segmentMasks[8])
+        let sscWidth = bounds.size.width/CGFloat(digits)
+        var xPosition = bounds.origin.x
+        
+        for i in 0..<digits {
+            // Make the next cell.
+            let sscRect = CGRectMake(xPosition, yOrigin, sscWidth, segmentHeight)
+            // Draw the SSC
+            drawSSC(context, sscRect:sscRect, mask:masks[i])
+            // Move to the next cell
+            xPosition += sscWidth
+        }
     }
 
 }
